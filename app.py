@@ -12,7 +12,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Redis Configuration
-REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://default:********@calm-hagfish-24908.upstash.io:6379')
 redis_client = redis.from_url(REDIS_URL, decode_responses=True)
 pubsub = redis_client.pubsub()
 
