@@ -9,14 +9,13 @@ import random
 import os
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Redis Configuration with PREFIX for sharing
 REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
 
 # IMPORTANT: Change this prefix for each project!
 PROJECT_PREFIX = "sysmonitor:"  # For this project
-# For your other project, use different prefix like "project2:", "chatapp:", etc.
 
 class PrefixedRedis:
     """Redis wrapper that adds project prefix to all keys"""
@@ -55,9 +54,7 @@ class PrefixedRedis:
         return self.client.publish(self._key(channel), message)
     
     def pubsub(self):
-        ps = self.client.pubsub()
-        ps._prefix = self.prefix
-        return ps
+        return self.client.pubsub()
     
     def keys(self, pattern):
         return self.client.keys(self._key(pattern))
@@ -124,8 +121,8 @@ class Worker(threading.Thread):
     def run(self):
         """Worker thread for async processing"""
         worker_pubsub = redis_client.pubsub()
-        # Subscribe with prefix
-        worker_pubsub.subscribe(f"{PROJECT_PREFIX}metrics_channel")
+        # FIXED: Subscribe without double prefix
+        worker_pubsub.subscribe(f"{redis_client.prefix}metrics_channel")
         
         for message in worker_pubsub.listen():
             if not self.is_running:
@@ -178,7 +175,21 @@ def get_next_node():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    """Serve dashboard or API info"""
+    return jsonify({
+        'status': 'running',
+        'service': 'Distributed System Monitor',
+        'endpoints': {
+            'stats': '/api/stats',
+            'metrics': '/api/metrics (POST)',
+            'simulate': '/api/simulate (POST)'
+        },
+        'config': {
+            'max_nodes': MAX_NODES,
+            'worker_pool_size': WORKER_POOL_SIZE,
+            'redis_prefix': PROJECT_PREFIX
+        }
+    })
 
 @app.route('/api/metrics', methods=['POST'])
 def receive_metrics():
@@ -241,6 +252,15 @@ def simulate_load():
     threading.Thread(target=generate_metrics, daemon=True).start()
     
     return jsonify({'status': 'simulation_started', 'metrics': num_metrics})
+
+@app.route('/health')
+def health():
+    """Health check endpoint"""
+    try:
+        redis_client.ping()
+        return jsonify({'status': 'healthy', 'redis': 'connected'}), 200
+    except:
+        return jsonify({'status': 'unhealthy', 'redis': 'disconnected'}), 500
 
 if __name__ == '__main__':
     # Initialize worker pool
