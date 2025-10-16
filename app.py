@@ -180,6 +180,88 @@ def get_next_node():
 def index():
     return render_template('index.html')
 
+# ===== NEW HEALTH CHECK ENDPOINTS =====
+@app.route('/health')
+def health_check():
+    """Basic health check endpoint"""
+    try:
+        # Check Redis connection
+        redis_client.ping()
+        redis_status = "connected"
+    except Exception as e:
+        redis_status = f"disconnected: {str(e)}"
+    
+    return jsonify({
+        'status': 'healthy' if redis_status == "connected" else 'unhealthy',
+        'timestamp': datetime.now().isoformat(),
+        'redis': redis_status,
+        'uptime_seconds': time.time() - processor.start_time
+    })
+
+@app.route('/api/health')
+def api_health_check():
+    """Detailed health check with system metrics"""
+    try:
+        # Check Redis connection
+        redis_client.ping()
+        redis_status = "connected"
+        redis_healthy = True
+    except Exception as e:
+        redis_status = f"disconnected: {str(e)}"
+        redis_healthy = False
+    
+    # Count active workers
+    active_workers = len([w for w in processor.worker_pool if w.is_alive()])
+    
+    # Count healthy nodes
+    healthy_nodes = 0
+    failed_nodes = 0
+    for node_id in range(MAX_NODES):
+        stats_key = f"node_stats:{node_id}"
+        status = redis_client.hget(stats_key, 'status')
+        if status == 'healthy':
+            healthy_nodes += 1
+        elif status == 'failed':
+            failed_nodes += 1
+    
+    # Calculate total metrics processed
+    total_metrics = 0
+    for node_id in range(MAX_NODES):
+        stats_key = f"node_stats:{node_id}"
+        metrics = redis_client.hget(stats_key, 'total_metrics')
+        if metrics:
+            total_metrics += int(metrics)
+    
+    overall_status = 'healthy' if redis_healthy and active_workers > 0 else 'unhealthy'
+    
+    return jsonify({
+        'status': overall_status,
+        'timestamp': datetime.now().isoformat(),
+        'components': {
+            'redis': {
+                'status': redis_status,
+                'healthy': redis_healthy
+            },
+            'workers': {
+                'active': active_workers,
+                'total': WORKER_POOL_SIZE,
+                'healthy': active_workers > WORKER_POOL_SIZE * 0.5  # At least 50% active
+            },
+            'nodes': {
+                'total': MAX_NODES,
+                'healthy': healthy_nodes,
+                'failed': failed_nodes
+            }
+        },
+        'metrics': {
+            'total_processed': total_metrics,
+            'uptime_seconds': round(time.time() - processor.start_time, 2),
+            'target_throughput': '1M+ metrics/hour',
+            'target_latency': '<50ms'
+        }
+    }), 200 if overall_status == 'healthy' else 503
+# ===== END NEW ENDPOINTS =====
+
 @app.route('/api/metrics', methods=['POST'])
 def receive_metrics():
     """Receive metrics from distributed nodes"""
