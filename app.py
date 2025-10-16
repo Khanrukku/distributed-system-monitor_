@@ -9,13 +9,14 @@ import random
 import os
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app)
 
 # Redis Configuration with PREFIX for sharing
 REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
 
 # IMPORTANT: Change this prefix for each project!
 PROJECT_PREFIX = "sysmonitor:"  # For this project
+# For your other project, use different prefix like "project2:", "chatapp:", etc.
 
 class PrefixedRedis:
     """Redis wrapper that adds project prefix to all keys"""
@@ -54,7 +55,9 @@ class PrefixedRedis:
         return self.client.publish(self._key(channel), message)
     
     def pubsub(self):
-        return self.client.pubsub()
+        ps = self.client.pubsub()
+        ps._prefix = self.prefix
+        return ps
     
     def keys(self, pattern):
         return self.client.keys(self._key(pattern))
@@ -121,8 +124,8 @@ class Worker(threading.Thread):
     def run(self):
         """Worker thread for async processing"""
         worker_pubsub = redis_client.pubsub()
-        # FIXED: Subscribe without double prefix
-        worker_pubsub.subscribe(f"{redis_client.prefix}metrics_channel")
+        # Subscribe with prefix
+        worker_pubsub.subscribe(f"{PROJECT_PREFIX}metrics_channel")
         
         for message in worker_pubsub.listen():
             if not self.is_running:
@@ -175,12 +178,7 @@ def get_next_node():
 
 @app.route('/')
 def index():
-    """Serve the monitoring dashboard"""
-    response = make_response(render_template('index.html'))
-    # Allow iframe embedding
-    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
-    response.headers['Content-Security-Policy'] = "frame-ancestors 'self' https://*.onrender.com"
-    return response
+    return render_template('index.html')
 
 @app.route('/api/metrics', methods=['POST'])
 def receive_metrics():
@@ -243,15 +241,6 @@ def simulate_load():
     threading.Thread(target=generate_metrics, daemon=True).start()
     
     return jsonify({'status': 'simulation_started', 'metrics': num_metrics})
-
-@app.route('/health')
-def health():
-    """Health check endpoint"""
-    try:
-        redis_client.ping()
-        return jsonify({'status': 'healthy', 'redis': 'connected'}), 200
-    except:
-        return jsonify({'status': 'unhealthy', 'redis': 'disconnected'}), 500
 
 if __name__ == '__main__':
     # Initialize worker pool
