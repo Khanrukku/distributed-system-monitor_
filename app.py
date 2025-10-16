@@ -11,24 +11,72 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# ---------------------- Redis Configuration ----------------------
-REDIS_URL = os.environ.get('REDIS_URL')
+# Redis Configuration with PREFIX for sharing
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
 
-# Validate the URL and ensure it's secure
-if REDIS_URL is None or not REDIS_URL.startswith("rediss://"):
-    raise ValueError("❌ Invalid or missing REDIS_URL. Make sure it's a rediss:// URL from Upstash.")
+# IMPORTANT: Change this prefix for each project!
+PROJECT_PREFIX = "sysmonitor:"  # For this project
+# For your other project, use different prefix like "project2:", "chatapp:", etc.
 
-try:
-    redis_client = redis.from_url(REDIS_URL, decode_responses=True)
-    redis_client.ping()
-    print("✅ Connected to Redis successfully")
-except Exception as e:
-    print("❌ Redis connection failed:", e)
-    raise e
+class PrefixedRedis:
+    """Redis wrapper that adds project prefix to all keys"""
+    def __init__(self, url, prefix):
+        self.client = redis.from_url(url, decode_responses=True)
+        self.prefix = prefix
+    
+    def _key(self, k):
+        return f"{self.prefix}{k}"
+    
+    def get(self, key):
+        return self.client.get(self._key(key))
+    
+    def set(self, key, value):
+        return self.client.set(self._key(key), value)
+    
+    def setex(self, key, time, value):
+        return self.client.setex(self._key(key), time, value)
+    
+    def hget(self, name, key):
+        return self.client.hget(self._key(name), key)
+    
+    def hset(self, name, key, value):
+        return self.client.hset(self._key(name), key, value)
+    
+    def hgetall(self, name):
+        return self.client.hgetall(self._key(name))
+    
+    def hincrby(self, name, key, amount=1):
+        return self.client.hincrby(self._key(name), key, amount)
+    
+    def expire(self, key, time):
+        return self.client.expire(self._key(key), time)
+    
+    def publish(self, channel, message):
+        return self.client.publish(self._key(channel), message)
+    
+    def pubsub(self):
+        ps = self.client.pubsub()
+        ps._prefix = self.prefix
+        return ps
+    
+    def keys(self, pattern):
+        return self.client.keys(self._key(pattern))
+    
+    def scan_iter(self, match=None):
+        if match:
+            match = self._key(match)
+        return self.client.scan_iter(match=match)
+    
+    def delete(self, key):
+        return self.client.delete(self._key(key))
+    
+    def ping(self):
+        return self.client.ping()
 
-pubsub = redis_client.pubsub()
+# Initialize with prefix
+redis_client = PrefixedRedis(REDIS_URL, PROJECT_PREFIX)
 
-# ---------------------- System Configuration ----------------------
+# System Configuration
 MAX_NODES = 20
 METRICS_PER_NODE = 50000
 WORKER_POOL_SIZE = 100
@@ -43,18 +91,22 @@ class MetricsProcessor:
     def process_metric(self, data):
         """Process individual metric with <50ms latency"""
         start = time.time()
-        try:
-            metric_key = f"metric:{data['node_id']}:{data['timestamp']}"
-            redis_client.setex(metric_key, 3600, json.dumps(data))
-            self.update_stats(data)
-        except Exception as e:
-            print("❌ Error processing metric:", e)
+        
+        # Cache strategy - store in Redis with TTL
+        metric_key = f"metric:{data['node_id']}:{data['timestamp']}"
+        redis_client.setex(metric_key, 3600, json.dumps(data))
+        
+        # Update aggregated stats
+        self.update_stats(data)
+        
         latency = (time.time() - start) * 1000
         return latency < 50
-
+    
     def update_stats(self, data):
+        """Update node health and metrics count"""
         node_id = data['node_id']
         stats_key = f"node_stats:{node_id}"
+        
         redis_client.hincrby(stats_key, 'total_metrics', 1)
         redis_client.hset(stats_key, 'last_seen', time.time())
         redis_client.hset(stats_key, 'status', data.get('status', 'healthy'))
@@ -62,7 +114,7 @@ class MetricsProcessor:
 
 processor = MetricsProcessor()
 
-# ---------------------- Worker Thread ----------------------
+# Pub/Sub Worker Pool
 class Worker(threading.Thread):
     def __init__(self, worker_id):
         super().__init__(daemon=True)
@@ -70,8 +122,11 @@ class Worker(threading.Thread):
         self.is_running = True
         
     def run(self):
+        """Worker thread for async processing"""
         worker_pubsub = redis_client.pubsub()
-        worker_pubsub.subscribe('metrics_channel')
+        # Subscribe with prefix
+        worker_pubsub.subscribe(f"{PROJECT_PREFIX}metrics_channel")
+        
         for message in worker_pubsub.listen():
             if not self.is_running:
                 break
@@ -80,30 +135,33 @@ class Worker(threading.Thread):
                     data = json.loads(message['data'])
                     processor.process_metric(data)
                 except Exception as e:
-                    print(f"❌ Worker {self.worker_id} error:", e)
+                    print(f"Worker {self.worker_id} error: {e}")
 
 def init_worker_pool():
+    """Initialize 100 workers for 10K concurrent events"""
     for i in range(WORKER_POOL_SIZE):
         worker = Worker(i)
         worker.start()
         processor.worker_pool.append(worker)
 
-# ---------------------- Node Health Check ----------------------
 def check_node_health():
+    """Monitor node health and implement failure recovery"""
     while True:
         try:
             current_time = time.time()
             for node_id in range(MAX_NODES):
                 stats_key = f"node_stats:{node_id}"
                 last_seen = redis_client.hget(stats_key, 'last_seen')
+                
                 if last_seen and (current_time - float(last_seen)) > 60:
                     redis_client.hset(stats_key, 'status', 'failed')
                     recover_failed_node(node_id)
         except Exception as e:
-            print(f"❌ Health check error: {e}")
+            print(f"Health check error: {e}")
         time.sleep(10)
 
 def recover_failed_node(node_id):
+    """Failure recovery mechanism"""
     recovery_key = f"recovery:{node_id}"
     redis_client.setex(recovery_key, 300, json.dumps({
         'node_id': node_id,
@@ -113,28 +171,29 @@ def recover_failed_node(node_id):
 
 node_counter = 0
 def get_next_node():
+    """Load balancing across nodes"""
     global node_counter
     node_counter = (node_counter + 1) % MAX_NODES
     return node_counter
 
-# ---------------------- Routes ----------------------
 @app.route('/')
 def index():
     return render_template('index.html')
 
 @app.route('/api/metrics', methods=['POST'])
 def receive_metrics():
+    """Receive metrics from distributed nodes"""
     data = request.json
     data['received_at'] = time.time()
-    try:
-        redis_client.publish('metrics_channel', json.dumps(data))
-        return jsonify({'status': 'received', 'latency_target': '<50ms'}), 200
-    except Exception as e:
-        print("❌ Failed to publish metric:", e)
-        return jsonify({'error': 'Redis publish failed'}), 500
+    
+    # Publish to Pub/Sub for async processing
+    redis_client.publish('metrics_channel', json.dumps(data))
+    
+    return jsonify({'status': 'received', 'latency_target': '<50ms'}), 200
 
 @app.route('/api/stats')
 def get_stats():
+    """Get real-time statistics"""
     stats = {
         'total_nodes': MAX_NODES,
         'worker_pool_size': WORKER_POOL_SIZE,
@@ -145,25 +204,25 @@ def get_stats():
             'target_latency_ms': 50
         }
     }
-    try:
-        for node_id in range(MAX_NODES):
-            stats_key = f"node_stats:{node_id}"
-            node_stats = redis_client.hgetall(stats_key)
-            if node_stats:
-                stats['nodes'].append({
-                    'node_id': node_id,
-                    'total_metrics': int(node_stats.get('total_metrics', 0)),
-                    'status': node_stats.get('status', 'unknown'),
-                    'last_seen': float(node_stats.get('last_seen', 0))
-                })
-        return jsonify(stats)
-    except Exception as e:
-        print("❌ Failed to fetch stats:", e)
-        return jsonify({'error': 'Failed to get stats'}), 500
+    
+    for node_id in range(MAX_NODES):
+        stats_key = f"node_stats:{node_id}"
+        node_stats = redis_client.hgetall(stats_key)
+        if node_stats:
+            stats['nodes'].append({
+                'node_id': node_id,
+                'total_metrics': int(node_stats.get('total_metrics', 0)),
+                'status': node_stats.get('status', 'unknown'),
+                'last_seen': float(node_stats.get('last_seen', 0))
+            })
+    
+    return jsonify(stats)
 
 @app.route('/api/simulate', methods=['POST'])
 def simulate_load():
+    """Simulate distributed nodes sending metrics"""
     num_metrics = request.json.get('count', 1000)
+    
     def generate_metrics():
         for _ in range(num_metrics):
             node_id = get_next_node()
@@ -176,26 +235,25 @@ def simulate_load():
                 'network_io': random.uniform(0, 1000),
                 'status': 'healthy' if random.random() > 0.05 else 'degraded'
             }
-            try:
-                redis_client.publish('metrics_channel', json.dumps(metric))
-            except Exception as e:
-                print("❌ Failed to publish simulated metric:", e)
+            redis_client.publish('metrics_channel', json.dumps(metric))
             time.sleep(0.001)
+    
     threading.Thread(target=generate_metrics, daemon=True).start()
+    
     return jsonify({'status': 'simulation_started', 'metrics': num_metrics})
 
-@app.route('/test-redis')
-def test_redis():
-    try:
-        pong = redis_client.ping()
-        return jsonify({'redis_ping': pong}), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-# ---------------------- Entry Point ----------------------
 if __name__ == '__main__':
+    # Initialize worker pool
     init_worker_pool()
+    
+    # Start health check thread
     threading.Thread(target=check_node_health, daemon=True).start()
-    print("🚀 App is starting...")
+    
+    print(f"🚀 Distributed System Monitor starting...")
+    print(f"📊 Configured for {MAX_NODES} nodes")
+    print(f"⚡ Worker pool: {WORKER_POOL_SIZE} workers")
+    print(f"🎯 Target: 1M+ metrics/hour, <50ms latency")
+    print(f"🔑 Redis prefix: {PROJECT_PREFIX}")
+    
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
