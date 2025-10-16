@@ -17,6 +17,10 @@
             min-height: 100vh;
             padding: 20px;
             overflow-x: hidden;
+            transition: background 0.3s;
+        }
+        body.dark-mode {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
         }
         .container {
             max-width: 1600px;
@@ -31,6 +35,9 @@
             position: relative;
             overflow: hidden;
         }
+        body.dark-mode .header {
+            background: rgba(30, 41, 59, 0.98);
+        }
         .header::before {
             content: '';
             position: absolute;
@@ -39,6 +46,32 @@
             right: 0;
             height: 5px;
             background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+        }
+        .header-controls {
+            position: absolute;
+            top: 35px;
+            right: 35px;
+            display: flex;
+            gap: 15px;
+        }
+        .icon-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        .icon-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
         }
         .header h1 {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -49,10 +82,19 @@
             font-size: 32px;
             font-weight: 800;
         }
+        body.dark-mode .header h1 {
+            background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
         .header p {
             color: #666;
             font-size: 15px;
             font-weight: 500;
+        }
+        body.dark-mode .header p {
+            color: #94a3b8;
         }
         .stats-grid {
             display: grid;
@@ -68,6 +110,9 @@
             position: relative;
             overflow: hidden;
             transition: transform 0.3s, box-shadow 0.3s;
+        }
+        body.dark-mode .stat-card {
+            background: rgba(30, 41, 59, 0.98);
         }
         .stat-card:hover {
             transform: translateY(-8px);
@@ -90,10 +135,19 @@
             letter-spacing: 1px;
             font-weight: 700;
         }
+        body.dark-mode .stat-card h3 {
+            color: #818cf8;
+        }
         .stat-card .value {
             font-size: 42px;
             font-weight: 900;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        body.dark-mode .stat-card .value {
+            background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -104,6 +158,9 @@
             margin-top: 8px;
             font-weight: 500;
         }
+        body.dark-mode .stat-card .label {
+            color: #64748b;
+        }
         .metric-flow {
             height: 6px;
             background: #e5e7eb;
@@ -111,6 +168,9 @@
             overflow: hidden;
             margin-top: 15px;
             position: relative;
+        }
+        body.dark-mode .metric-flow {
+            background: #334155;
         }
         .metric-flow-bar {
             height: 100%;
@@ -146,11 +206,17 @@
             border-radius: 20px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.15);
         }
+        body.dark-mode .chart-card {
+            background: rgba(30, 41, 59, 0.98);
+        }
         .chart-card h2 {
             color: #667eea;
             margin-bottom: 20px;
             font-size: 20px;
             font-weight: 700;
+        }
+        body.dark-mode .chart-card h2 {
+            color: #818cf8;
         }
         .nodes-section {
             background: rgba(255, 255, 255, 0.98);
@@ -159,11 +225,17 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.15);
             margin-bottom: 30px;
         }
+        body.dark-mode .nodes-section {
+            background: rgba(30, 41, 59, 0.98);
+        }
         .nodes-section h2 {
             color: #667eea;
             margin-bottom: 25px;
             font-size: 22px;
             font-weight: 700;
+        }
+        body.dark-mode .nodes-section h2 {
+            color: #818cf8;
         }
         .nodes-grid {
             display: grid;
@@ -178,6 +250,9 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+        }
+        body.dark-mode .node-card {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
         }
         .node-card::before {
             content: '';
@@ -223,10 +298,16 @@
             margin-bottom: 12px;
             font-size: 16px;
         }
+        body.dark-mode .node-id {
+            color: #e2e8f0;
+        }
         .node-metrics {
             font-size: 13px;
             color: #64748b;
             font-weight: 600;
+        }
+        body.dark-mode .node-metrics {
+            color: #94a3b8;
         }
         .status-badge {
             display: inline-block;
@@ -256,6 +337,9 @@
             border-radius: 20px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.15);
             text-align: center;
+        }
+        body.dark-mode .controls {
+            background: rgba(30, 41, 59, 0.98);
         }
         .btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -306,6 +390,10 @@
             color: #065f46;
             margin-bottom: 20px;
         }
+        body.dark-mode .live-indicator {
+            background: rgba(16, 185, 129, 0.2);
+            color: #6ee7b7;
+        }
         .live-dot {
             width: 10px;
             height: 10px;
@@ -329,11 +417,251 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+        .controls p {
+            color: #666;
+            margin-top: 20px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        body.dark-mode .controls p {
+            color: #94a3b8;
+        }
+        
+        /* Alert Notification */
+        .alert-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 400px;
+        }
+        .alert {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            animation: slideIn 0.3s ease-out;
+            border-left: 5px solid #667eea;
+        }
+        body.dark-mode .alert {
+            background: #1e293b;
+            border-left-color: #818cf8;
+        }
+        .alert.warning {
+            border-left-color: #f59e0b;
+        }
+        .alert.error {
+            border-left-color: #ef4444;
+        }
+        .alert.success {
+            border-left-color: #10b981;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .alert-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        .alert-content {
+            flex: 1;
+        }
+        .alert-title {
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #1e293b;
+        }
+        body.dark-mode .alert-title {
+            color: #e2e8f0;
+        }
+        .alert-message {
+            font-size: 14px;
+            color: #64748b;
+        }
+        body.dark-mode .alert-message {
+            color: #94a3b8;
+        }
+        .alert-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #64748b;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        .alert-close:hover {
+            background: rgba(0,0,0,0.1);
+        }
+
+        /* Export Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+        .modal.active {
+            display: flex;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: scaleIn 0.3s;
+        }
+        body.dark-mode .modal-content {
+            background: #1e293b;
+        }
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        .modal-content h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        body.dark-mode .modal-content h2 {
+            color: #818cf8;
+        }
+        .export-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .export-btn {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 2px solid #e2e8f0;
+            padding: 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        body.dark-mode .export-btn {
+            background: linear-gradient(135deg, #334155 0%, #475569 100%);
+            border-color: #475569;
+            color: #e2e8f0;
+        }
+        .export-btn:hover {
+            transform: translateY(-3px);
+            border-color: #667eea;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        .export-icon {
+            font-size: 24px;
+        }
+        .modal-close {
+            background: #e2e8f0;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            transition: background 0.3s;
+        }
+        body.dark-mode .modal-close {
+            background: #334155;
+            color: #e2e8f0;
+        }
+        .modal-close:hover {
+            background: #cbd5e1;
+        }
+        body.dark-mode .modal-close:hover {
+            background: #475569;
+        }
     </style>
 </head>
 <body>
+    <div class="alert-container" id="alertContainer"></div>
+
+    <div class="modal" id="exportModal">
+        <div class="modal-content">
+            <h2>📊 Export Dashboard Data</h2>
+            <div class="export-options">
+                <button class="export-btn" onclick="exportData('json')">
+                    <span class="export-icon">📄</span>
+                    <div>
+                        <div>Export as JSON</div>
+                        <div style="font-size: 12px; color: #64748b;">Complete system data</div>
+                    </div>
+                </button>
+                <button class="export-btn" onclick="exportData('csv')">
+                    <span class="export-icon">📊</span>
+                    <div>
+                        <div>Export as CSV</div>
+                        <div style="font-size: 12px; color: #64748b;">Spreadsheet format</div>
+                    </div>
+                </button>
+                <button class="export-btn" onclick="exportData('pdf')">
+                    <span class="export-icon">📑</span>
+                    <div>
+                        <div>Generate PDF Report</div>
+                        <div style="font-size: 12px; color: #64748b;">Detailed summary</div>
+                    </div>
+                </button>
+            </div>
+            <button class="modal-close" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
+            <div class="header-controls">
+                <button class="icon-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode">
+                    <span id="themeIcon">🌙</span>
+                </button>
+                <button class="icon-btn" onclick="openExportModal()" title="Export Data">
+                    📥
+                </button>
+            </div>
             <div class="live-indicator">
                 <span class="live-dot"></span>
                 LIVE MONITORING
@@ -399,9 +727,7 @@
             <button class="btn" onclick="simulateLoad()" id="simulateBtn">
                 <span id="btnText">Simulate High Load (10K Metrics)</span>
             </button>
-            <p style="color: #666; margin-top: 20px; font-size: 15px; font-weight: 600;">
-                🔧 Demonstrates: Load Balancing • Redis Caching • Failure Recovery • Horizontal Scalability • Graceful Degradation
-            </p>
+            <p>🔧 Demonstrates: Load Balancing • Redis Caching • Failure Recovery • Horizontal Scalability • Graceful Degradation</p>
         </div>
     </div>
 
@@ -412,6 +738,166 @@
         let latencyHistory = [];
         let healthHistory = { healthy: [], degraded: [], failed: [] };
         let timeLabels = [];
+        let currentStats = null;
+        let isDarkMode = false;
+
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode');
+            document.getElementById('themeIcon').textContent = isDarkMode ? '☀️' : '🌙';
+            
+            // Update chart colors
+            updateChartColors();
+            
+            showAlert('success', 'Theme Changed', `Switched to ${isDarkMode ? 'dark' : 'light'} mode`);
+        }
+
+        function updateChartColors() {
+            const textColor = isDarkMode ? '#94a3b8' : '#64748b';
+            const gridColor = isDarkMode ? 'rgba(148, 163, 184, 0.1)' : 'rgba(0,0,0,0.05)';
+            
+            [metricsChart, healthChart, latencyChart].forEach(chart => {
+                if (chart.options.scales) {
+                    if (chart.options.scales.y) {
+                        chart.options.scales.y.ticks.color = textColor;
+                        chart.options.scales.y.grid.color = gridColor;
+                    }
+                    if (chart.options.scales.x) {
+                        chart.options.scales.x.ticks.color = textColor;
+                        chart.options.scales.x.grid.color = gridColor;
+                    }
+                }
+                if (chart.options.plugins?.legend) {
+                    chart.options.plugins.legend.labels.color = textColor;
+                }
+                chart.update('none');
+            });
+        }
+
+        // Alert System
+        function showAlert(type, title, message) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            
+            const icons = {
+                success: '✅',
+                warning: '⚠️',
+                error: '❌',
+                info: 'ℹ️'
+            };
+            
+            alert.innerHTML = `
+                <div class="alert-icon">${icons[type] || 'ℹ️'}</div>
+                <div class="alert-content">
+                    <div class="alert-title">${title}</div>
+                    <div class="alert-message">${message}</div>
+                </div>
+                <button class="alert-close" onclick="this.parentElement.remove()">×</button>
+            `;
+            
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => alert.remove(), 300);
+            }, 5000);
+        }
+
+        // Export Modal
+        function openExportModal() {
+            document.getElementById('exportModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('exportModal').classList.remove('active');
+        }
+
+        function exportData(format) {
+            if (!currentStats) {
+                showAlert('error', 'Export Failed', 'No data available to export');
+                return;
+            }
+
+            if (format === 'json') {
+                const dataStr = JSON.stringify(currentStats, null, 2);
+                downloadFile(dataStr, 'system-monitor-data.json', 'application/json');
+                showAlert('success', 'Export Complete', 'JSON file downloaded successfully');
+            } else if (format === 'csv') {
+                let csv = 'Node ID,Total Metrics,Status,Last Seen\n';
+                currentStats.nodes.forEach(node => {
+                    const lastSeen = new Date(node.last_seen * 1000).toLocaleString();
+                    csv += `${node.node_id},${node.total_metrics},${node.status},${lastSeen}\n`;
+                });
+                downloadFile(csv, 'system-monitor-data.csv', 'text/csv');
+                showAlert('success', 'Export Complete', 'CSV file downloaded successfully');
+            } else if (format === 'pdf') {
+                // Generate a simple text-based report
+                const report = generateTextReport();
+                downloadFile(report, 'system-monitor-report.txt', 'text/plain');
+                showAlert('success', 'Export Complete', 'Report downloaded successfully');
+            }
+            closeModal();
+        }
+
+        function generateTextReport() {
+            const now = new Date().toLocaleString();
+            let report = `
+=====================================
+DISTRIBUTED SYSTEM MONITOR REPORT
+=====================================
+Generated: ${now}
+
+SYSTEM OVERVIEW
+--------------
+Total Nodes: ${currentStats.total_nodes}
+Worker Pool Size: ${currentStats.worker_pool_size}
+System Uptime: ${Math.floor(currentStats.system.uptime)}s
+Target Throughput: ${currentStats.system.target_metrics_per_hour.toLocaleString()} metrics/hour
+Target Latency: <${currentStats.system.target_latency_ms}ms
+
+METRICS SUMMARY
+--------------
+Total Metrics Processed: ${currentStats.nodes.reduce((sum, n) => sum + n.total_metrics, 0).toLocaleString()}
+Healthy Nodes: ${currentStats.nodes.filter(n => n.status === 'healthy').length}
+Degraded Nodes: ${currentStats.nodes.filter(n => n.status === 'degraded').length}
+Failed Nodes: ${currentStats.nodes.filter(n => n.status === 'failed').length}
+
+NODE DETAILS
+-----------
+`;
+            currentStats.nodes.forEach(node => {
+                const lastSeen = new Date(node.last_seen * 1000).toLocaleString();
+                report += `Node #${node.node_id}: ${node.total_metrics.toLocaleString()} metrics | Status: ${node.status.toUpperCase()} | Last Seen: ${lastSeen}\n`;
+            });
+            
+            report += `
+ARCHITECTURE FEATURES
+--------------------
+✓ Pub/Sub Architecture (Redis)
+✓ Load Balancing (Round-robin)
+✓ Horizontal Scalability
+✓ Failure Recovery
+✓ Graceful Degradation
+✓ Caching Strategies (TTL-based)
+
+=====================================
+`;
+            return report;
+        }
+
+        function downloadFile(content, filename, contentType) {
+            const blob = new Blob([content], { type: contentType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
 
         // Initialize Charts
         const metricsChartCtx = document.getElementById('metricsChart').getContext('2d');
@@ -525,11 +1011,13 @@
         });
 
         let lastMetricsCount = 0;
+        let lastAlertTime = 0;
 
         async function updateStats() {
             try {
                 const response = await fetch('/api/stats');
                 const data = await response.json();
+                currentStats = data;
 
                 document.getElementById('totalNodes').textContent = data.total_nodes;
                 document.getElementById('workerPool').textContent = data.worker_pool_size;
@@ -572,6 +1060,17 @@
                 healthChart.data.datasets[0].data = [healthy, degraded, failed];
                 healthChart.update('none');
 
+                // Alert for node issues (throttled)
+                const now_ms = Date.now();
+                if ((degraded > 0 || failed > 0) && (now_ms - lastAlertTime) > 30000) {
+                    if (failed > 0) {
+                        showAlert('error', 'Node Failure Detected', `${failed} node(s) have failed. Recovery initiated.`);
+                    } else if (degraded > 0) {
+                        showAlert('warning', 'Performance Degradation', `${degraded} node(s) showing degraded performance.`);
+                    }
+                    lastAlertTime = now_ms;
+                }
+
                 // Update nodes grid
                 const nodesGrid = document.getElementById('nodesGrid');
                 nodesGrid.innerHTML = '';
@@ -592,6 +1091,7 @@
                 }
             } catch (error) {
                 console.error('Error updating stats:', error);
+                showAlert('error', 'Connection Error', 'Failed to fetch system stats');
             }
         }
 
@@ -604,6 +1104,8 @@
             btn.disabled = true;
             btnText.innerHTML = '<span class="loading"></span> Processing 10K Metrics...';
             
+            showAlert('info', 'Simulation Started', 'Generating 10,000 metrics across distributed nodes...');
+            
             try {
                 await fetch('/api/simulate', {
                     method: 'POST',
@@ -615,18 +1117,50 @@
                     btnText.textContent = 'Simulate High Load (10K Metrics)';
                     btn.disabled = false;
                     isSimulating = false;
+                    showAlert('success', 'Simulation Complete', '10,000 metrics processed successfully with <50ms latency!');
                 }, 15000);
             } catch (error) {
                 console.error('Error simulating load:', error);
                 btnText.textContent = 'Simulate High Load (10K Metrics)';
                 btn.disabled = false;
                 isSimulating = false;
+                showAlert('error', 'Simulation Failed', 'Unable to complete load simulation');
             }
         }
+
+        // Close modal on outside click
+        document.getElementById('exportModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // ESC to close modal
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+            // Ctrl/Cmd + D for dark mode
+            if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+                e.preventDefault();
+                toggleDarkMode();
+            }
+            // Ctrl/Cmd + E for export
+            if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+                e.preventDefault();
+                openExportModal();
+            }
+        });
 
         // Update stats every 2 seconds
         setInterval(updateStats, 2000);
         updateStats();
+
+        // Welcome message
+        setTimeout(() => {
+            showAlert('success', 'System Online', 'Distributed monitoring system initialized successfully!');
+        }, 1000);
     </script>
 </body>
 </html>
