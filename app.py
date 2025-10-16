@@ -12,7 +12,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Redis Configuration with PREFIX for sharing
-REDIS_URL = os.environ.get('REDIS_URL', 'redis://default:FgF7Cqf0GKyc94KUVwH0wlfDxtPdGfr3@redis-11625.c82.us-east-1-2.ec2.redns.redis-cloud.com:11625')
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
 
 # IMPORTANT: Change this prefix for each project!
 PROJECT_PREFIX = "sysmonitor:"  # For this project
