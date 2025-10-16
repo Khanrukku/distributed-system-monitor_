@@ -175,21 +175,12 @@ def get_next_node():
 
 @app.route('/')
 def index():
-    """Serve dashboard or API info"""
-    return jsonify({
-        'status': 'running',
-        'service': 'Distributed System Monitor',
-        'endpoints': {
-            'stats': '/api/stats',
-            'metrics': '/api/metrics (POST)',
-            'simulate': '/api/simulate (POST)'
-        },
-        'config': {
-            'max_nodes': MAX_NODES,
-            'worker_pool_size': WORKER_POOL_SIZE,
-            'redis_prefix': PROJECT_PREFIX
-        }
-    })
+    """Serve the monitoring dashboard"""
+    response = make_response(render_template('index.html'))
+    # Allow iframe embedding
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['Content-Security-Policy'] = "frame-ancestors 'self' https://*.onrender.com"
+    return response
 
 @app.route('/api/metrics', methods=['POST'])
 def receive_metrics():
