@@ -22,7 +22,7 @@ A fault-tolerant monitoring system processing 1M+ metrics/hour across 20+ distri
 - Round-robin load balancing
 
 ## Live Demo
-[Add your live link here after deployment]
+[https://distributed-system-monitor.onrender.com]
 
 ## Local Setup
 ```bash
